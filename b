@@ -1,1 +1,1 @@
-npm run build:submission
+npm run build && node ./zip.js
