@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>31/31</span>
+                <span class='fraction'>27/27</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.5% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>7/8</span>
+                <span class='fraction'>6/7</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>27/27</span>
+                <span class='fraction'>24/24</span>
             </div>
         
             
@@ -150,12 +150,7 @@
 <a name='L85'></a><a href='#L85'>85</a>
 <a name='L86'></a><a href='#L86'>86</a>
 <a name='L87'></a><a href='#L87'>87</a>
-<a name='L88'></a><a href='#L88'>88</a>
-<a name='L89'></a><a href='#L89'>89</a>
-<a name='L90'></a><a href='#L90'>90</a>
-<a name='L91'></a><a href='#L91'>91</a>
-<a name='L92'></a><a href='#L92'>92</a>
-<a name='L93'></a><a href='#L93'>93</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L88'></a><a href='#L88'>88</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -172,14 +167,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15x</span>
@@ -188,18 +179,17 @@
 <span class="cline-any cline-yes">2520x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -264,34 +254,29 @@ export function fetchUniversityWeather(
     // TODO
     const resObj: AverageTemperatureResults = {totalAverage: 0};
     let total = 0;
-    let count = 0;
 &nbsp;
     return fetchUniversities(universityQuery).then(
-        (uNames: string[]): Promise&lt;AverageTemperatureResults&gt;[] =&gt; {
-            return uNames.map(
-                (uName: string): Promise&lt;AverageTemperatureResults&gt; =&gt;
-                    fetchGeoCoord(transformName !== undefined ? transformName(uName) : uName).then(
-                        (geoco: GeoCoord) =&gt;
-                            fetchCurrentTemperature(geoco).then(
-                                (temper: TemperatureReading) =&gt; {
-                                    resObj[uName] = (
-                                        temper.temperature_2m.length === 0 ?
-<span class="branch-0 cbranch-no" title="branch not covered" >                                            0 </span>:
-                                            temper.temperature_2m.reduce((s, a) =&gt; s + a, 0) / temper.temperature_2m.length
-                                    );
-                                    total += resObj[uName];
-                                    ++count;
-                                    if (count === uNames.length) {
-                                        resObj.totalAverage = total / count;
-                                    }
-                                    return resObj;
-                                }
-                            )
-                    )
-            );
-        }
+        (uNames: string[]): Promise&lt;void&gt;[] =&gt; uNames.map(
+            (uName: string): Promise&lt;void&gt; =&gt; fetchGeoCoord(transformName !== undefined ? transformName(uName) : uName).then(
+                (geoco: GeoCoord): Promise&lt;void&gt; =&gt; fetchCurrentTemperature(geoco).then(
+                    (temper: TemperatureReading): void =&gt; {
+                        resObj[uName] = (
+                            temper.temperature_2m.length === 0 ?
+<span class="branch-0 cbranch-no" title="branch not covered" >                                0 </span>:
+                                temper.temperature_2m.reduce((s, a) =&gt; s + a, 0) / temper.temperature_2m.length
+                        );
+                        total += resObj[uName];
+                    }
+                )
+            )
+        )
     ).then(
-        arr =&gt; Promise.all(arr).then(x =&gt; x[0])
+        (proms: Promise&lt;void&gt;[]): Promise&lt;AverageTemperatureResults&gt; =&gt; Promise.all(proms).then(
+            (_: void[]): AverageTemperatureResults =&gt; {
+                resObj.totalAverage = total / _.length;
+                return resObj;
+            }
+        )
     );
     // return fetchUniversities(universityQuery).then(
     //     (uNames: string[]): Promise&lt;AverageTemperatureResults&gt; =&gt; {
@@ -346,7 +331,7 @@ export function fetchUCalWeather(): Promise&lt;AverageTemperatureResults&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-11-21T07:29:23.210Z
+                at 2023-11-21T07:57:45.935Z
             </div>
         <script src="prettify.js"></script>
         <script>

@@ -15,34 +15,29 @@ export function fetchUniversityWeather(
     // TODO
     const resObj: AverageTemperatureResults = {totalAverage: 0};
     let total = 0;
-    let count = 0;
 
     return fetchUniversities(universityQuery).then(
-        (uNames: string[]): Promise<AverageTemperatureResults>[] => {
-            return uNames.map(
-                (uName: string): Promise<AverageTemperatureResults> =>
-                    fetchGeoCoord(transformName !== undefined ? transformName(uName) : uName).then(
-                        (geoco: GeoCoord) =>
-                            fetchCurrentTemperature(geoco).then(
-                                (temper: TemperatureReading) => {
-                                    resObj[uName] = (
-                                        temper.temperature_2m.length === 0 ?
-                                            0 :
-                                            temper.temperature_2m.reduce((s, a) => s + a, 0) / temper.temperature_2m.length
-                                    );
-                                    total += resObj[uName];
-                                    ++count;
-                                    if (count === uNames.length) {
-                                        resObj.totalAverage = total / count;
-                                    }
-                                    return resObj;
-                                }
-                            )
-                    )
-            );
-        }
+        (uNames: string[]): Promise<void>[] => uNames.map(
+            (uName: string): Promise<void> => fetchGeoCoord(transformName !== undefined ? transformName(uName) : uName).then(
+                (geoco: GeoCoord): Promise<void> => fetchCurrentTemperature(geoco).then(
+                    (temper: TemperatureReading): void => {
+                        resObj[uName] = (
+                            temper.temperature_2m.length === 0 ?
+                                0 :
+                                temper.temperature_2m.reduce((s, a) => s + a, 0) / temper.temperature_2m.length
+                        );
+                        total += resObj[uName];
+                    }
+                )
+            )
+        )
     ).then(
-        arr => Promise.all(arr).then(x => x[0])
+        (proms: Promise<void>[]): Promise<AverageTemperatureResults> => Promise.all(proms).then(
+            (_: void[]): AverageTemperatureResults => {
+                resObj.totalAverage = total / _.length;
+                return resObj;
+            }
+        )
     );
     // return fetchUniversities(universityQuery).then(
     //     (uNames: string[]): Promise<AverageTemperatureResults> => {
