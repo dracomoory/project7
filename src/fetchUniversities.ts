@@ -7,7 +7,7 @@ export function fetchUniversities(query: string): Promise<string[]> {
           @return a Promise that fulfils with an array of university names
           If there are no results (the returned JSON is an empty array), resolve to an empty array.
     **/
-    query = "http://220.maxkuechen.com/universities/search?name=".concat(query);
+    query = `http://220.maxkuechen.com/universities/search?name=${query}`;
     return fetch(query)
         .then((result: Response): object => (result.ok ? result.json() as object : {} as object))
         .then((jsonObj: object): string[] => {

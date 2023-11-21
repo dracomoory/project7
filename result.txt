@@ -1,0 +1,10 @@
+{
+  languages: [ { key: '/languages/eng' } ],
+  number_of_pages: 1332,
+  publish_date: '2022',
+  publishers: [ 'MIT Press' ],
+  title: 'Introduction to Algorithms, Fourth Edition',
+  full_title: 'Introduction to Algorithms, Fourth Edition',
+  created: { type: '/type/datetime', value: '2021-09-30T22:31:17.574194' },
+  last_modified: { type: '/type/datetime', value: '2023-10-11T14:36:39.173425' }
+}

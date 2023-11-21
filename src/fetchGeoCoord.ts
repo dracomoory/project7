@@ -13,7 +13,7 @@ export function fetchGeoCoord(query: string): Promise<GeoCoord> {
           If there are no results for a location (the result array is empty), then the promise should reject with an error identical to the one below:
                   new Error("No results found for query.");
     **/
-    query = "https://220.maxkuechen.com/geoCoord/search?q=".concat(query);
+    query = `https://220.maxkuechen.com/geoCoord/search?q=${query}`;
     return fetch(query)
         .then((result: Response): object => (result.ok ? result.json() : {}))
         .then((result: object): GeoCoord | Promise<GeoCoord> => {
