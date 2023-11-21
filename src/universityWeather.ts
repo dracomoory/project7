@@ -13,28 +13,36 @@ export function fetchUniversityWeather(
     transformName?: (s: string) => string
 ): Promise<AverageTemperatureResults> {
     // TODO
-    const obj: AverageTemperatureResults = {totalAverage: 0};
-    let total = 0;
-    let count = 0;
-
-    return fetchUniversities(universityQuery)
-        .then((x: string[]) => {
-            return x.map((y: string) =>
-                (transformName !== undefined ? fetchGeoCoord(transformName(y)) : fetchGeoCoord(y)).then((z: GeoCoord) =>
-                    fetchCurrentTemperature(z).then((t: TemperatureReading) => {
-                        obj[y] = t.temperature_2m.reduce((s, a) => s + a, 0) / t.temperature_2m.length;
-                        total += obj[y];
-                        ++count;
-
-                        if (count === x.length) {
-                            obj.totalAverage = total / count;
+    return fetchUniversities(universityQuery).then(
+        (uNames: string[]): Promise<AverageTemperatureResults> => {
+            if (uNames.length === 0)
+                return Promise.reject<AverageTemperatureResults>(new Error("No results found for query."));
+            const resultedObj: AverageTemperatureResults = {totalAverage: 0};
+            let total: number = 0;
+            let count: number = 0;
+            uNames.forEach(
+                (uName: string): void => {
+                    fetchGeoCoord(transformName !== undefined ? transformName(uName) : uName).then(
+                        (geoco: GeoCoord): void => {
+                            fetchCurrentTemperature(geoco).then(
+                                (temper: TemperatureReading): void => {
+                                    resultedObj[uName] = (
+                                        temper.temperature_2m.length === 0 ?
+                                            0 :
+                                            temper.temperature_2m.reduce((acc, elem) => acc + elem, 0) / temper.temperature_2m.length
+                                    );
+                                    total += resultedObj[uName];
+                                    ++count;
+                                }
+                            );
                         }
-                        return obj;
-                    })
-                )
+                    );
+                }
             );
-        })
-        .then(arr => Promise.all(arr).then(x => x[0]));
+            resultedObj.totalAverage = total / count;
+            return Promise.resolve(resultedObj);
+        }
+    );
 }
 
 export function fetchUMassWeather(): Promise<AverageTemperatureResults> {
