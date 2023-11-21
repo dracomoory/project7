@@ -46,11 +46,11 @@ export function fetchUniversityWeather(
 
 export function fetchUMassWeather(): Promise<AverageTemperatureResults> {
     // TODO
-    return fetchUniversityWeather("University of Massachusetts", (x: string): string => {
-        if (x === "University of Massachusetts at Amherst") return "University of Massachusetts Amherst";
-        if (x === "University of Massachusetts at Lowell") return "University of Massachusetts Lowell";
-        if (x === "University of Massachusetts at Dartmouth") return "University of Massachusetts Dartmouth";
-        return x;
+    return fetchUniversityWeather("University of Massachusetts", (s: string): string => {
+        if (s === "University of Massachusetts at Amherst") return "University of Massachusetts Amherst";
+        if (s === "University of Massachusetts at Lowell") return "University of Massachusetts Lowell";
+        if (s === "University of Massachusetts at Dartmouth") return "University of Massachusetts Dartmouth";
+        return s;
     });
 }
 
