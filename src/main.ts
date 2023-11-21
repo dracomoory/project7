@@ -1,11 +1,37 @@
 import fetch from "../include/fetch.js";
-import {GeoCoord} from "./fetchGeoCoord.js";
-import {fetchUniversities} from "./fetchUniversities.js";
-import {fetchGeoCoord} from "./fetchGeoCoord.js";
-import {fetchCurrentTemperature} from "./fetchCurrentTemperature.js";
-import {fetchUniversityWeather, fetchUMassWeather, fetchUCalWeather} from "./universityWeather.js";
+import * as readline from 'readline';
+// import {GeoCoord} from "./fetchGeoCoord.js";
+// import {fetchUniversities} from "./fetchUniversities.js";
+// import {fetchGeoCoord} from "./fetchGeoCoord.js";
+// import {fetchCurrentTemperature} from "./fetchCurrentTemperature.js";
+// import {fetchUniversityWeather, fetchUMassWeather, fetchUCalWeather} from "./universityWeather.js";
 
 // TODO - Now its your turn to make the working example! :)
+
+class ConsoleAsker {
+    private linereader: readline.Interface;
+
+    public constructor() {
+        this.linereader = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+    }
+
+    public askQuestion(question: string): Promise<string> {
+        return new Promise<string>(
+            (resolve) => {
+                this.linereader.question(question, (answer) => {
+                    resolve(answer);
+                });
+            }
+        );
+    }
+
+    public close(): void {
+        this.linereader.close();
+    }
+}
 
 interface BookInfo {
     languages?: string[]; // [ { key: '/languages/eng' } ]
@@ -17,6 +43,7 @@ interface BookInfo {
     last_modified?: string;  //{ type: '/type/datetime', value: '2023-10-11T14:36:39.173425' }
 }
 
+// This function fetches the information of the book of a given ISBN.
 function fetchISBN(isbn: string): Promise<BookInfo> {
     isbn = `https://openlibrary.org/isbn/${isbn}.json`;
     const resultedObj: BookInfo = {};
@@ -69,90 +96,115 @@ function fetchISBN(isbn: string): Promise<BookInfo> {
         });
 }
 
-fetchISBN("9780140328721").then(console.log);
-
-
-//this function finds the temperature average in a city given by its longitude and latitude (using fetchCurrentWeather)
-function weatherIn(c: GeoCoord) {
-  return fetchCurrentTemperature(c).then(result => {
-    return result.temperature_2m.reduce((s, a) => s + a, 0) / result.temperature_2m.length;
-  });
+// This function compares the number of pages between two books and tells which one has more and by how many.
+async function comparePages(ISBN1: string, ISBN2: string): Promise<string> {
+    const isbninfo1 = await fetchISBN(ISBN1);
+    const isbninfo2 = await fetchISBN(ISBN2);
+    return (isbninfo1.title !== undefined && isbninfo1.number_of_pages !== undefined &&
+        isbninfo2.title !== undefined && isbninfo2.number_of_pages !== undefined) ?
+        (
+            (isbninfo1.number_of_pages > isbninfo2.number_of_pages) ?
+                `"${isbninfo1.title}" has ${isbninfo1.number_of_pages - isbninfo2.number_of_pages} more pages than "${isbninfo2.title}".` :
+                `"${isbninfo2.title}" has ${isbninfo2.number_of_pages - isbninfo1.number_of_pages} more pages than "${isbninfo1.title}".`
+        ) :
+        "Invalid Book!";
 }
 
-//finding average temperature for the following cities
-let Moscow = weatherIn({ lat: 37.6, lon: 55.75 });
-let Copenhagen = weatherIn({ lat: 12.57, lon: 55.67 });
-let RioDeJaneiro = weatherIn({ lat: -43.17, lon: -22.9 });
-let Paris = weatherIn({ lat: 2.35, lon: 48.86 });
-
-/*
-Moscow.then(c => console.log(c));
-Copenhagen.then(c => console.log(c));
-RioDeJaneiro.then(c => console.log(c));
-Paris.then(c => console.log(c));
-
-fetchUniversities("University of Massachusetts").then(x => console.log(x));
-fetchGeoCoord("University of Massachusetts Amherst").then(x => console.log(x));
-fetchUMassWeather().then(x => console.log(x));
-fetchUCalWeather().then(x => console.log(x));
-*/
-
-//this function compares weather in the given city to the weather in the given university
-function printDif(city: number, cityN: string, uni: number, uniN: string) {
-  if (city > uni) {
-    console.log("Weather in " + uniN + " is lower than in " + cityN + " by " + (city - uni) + " degrees.");
-  } else if (uni > city) {
-    console.log("Weather in " + uniN + " is higher than in " + cityN + " by " + (uni - city) + " degrees.");
-  } else {
-    console.log("Weather in " + uniN + " is the same as in " + cityN + ".");
-  }
+async function asymain(): Promise<void> {
+    console.log("There is a demo output where ISBN1 is 9780262046305, and ISBN2 is 9780140328721. ");
+    console.log(await comparePages('9780262046305', '9780140328721'));
+    console.log("Now, please input your two ISBNs, and similar output will be shown as result! \n");
+    const ca: ConsoleAsker = new ConsoleAsker();
+    const isbn1: string = await ca.askQuestion('Please input your first ISBN: ');
+    const isbn2: string = await ca.askQuestion('Please input your second ISBN: ');
+    console.log(await comparePages(isbn1, isbn2));
+    ca.close();
 }
 
-//printing all the comparisons (using fetchUmassWeather and fetchUCalWeather)
-fetchUMassWeather().then(r => {
-  Moscow.then(c => {
-    printDif(c, "Moscow", r.totalAverage, "University of Massachusetts");
-  });
-});
+asymain();
 
-fetchUMassWeather().then(r => {
-  Copenhagen.then(c => {
-    printDif(c, "Copenhagen", r.totalAverage, "University of Massachusetts");
-  });
-});
 
-fetchUMassWeather().then(r => {
-  RioDeJaneiro.then(c => {
-    printDif(c, "Rio de Janeiro", r.totalAverage, "University of Massachusetts");
-  });
-});
-
-fetchUMassWeather().then(r => {
-  Paris.then(c => {
-    printDif(c, "Paris", r.totalAverage, "University of Massachusetts");
-  });
-});
-
-fetchUCalWeather().then(r => {
-  Moscow.then(c => {
-    printDif(c, "Moscow", r.totalAverage, "University of California");
-  });
-});
-
-fetchUCalWeather().then(r => {
-  Copenhagen.then(c => {
-    printDif(c, "Copenhagen", r.totalAverage, "University of California");
-  });
-});
-
-fetchUCalWeather().then(r => {
-  RioDeJaneiro.then(c => {
-    printDif(c, "Rio de Janeiro", r.totalAverage, "University of California");
-  });
-});
-
-fetchUCalWeather().then(r => {
-  Paris.then(c => {
-    printDif(c, "Paris", r.totalAverage, "University of California");
-  });
-});
+// //this function finds the temperature average in a city given by its longitude and latitude (using fetchCurrentWeather)
+// function weatherIn(c: GeoCoord) {
+//     return fetchCurrentTemperature(c).then(result => {
+//         return result.temperature_2m.reduce((s, a) => s + a, 0) / result.temperature_2m.length;
+//     });
+// }
+//
+// //finding average temperature for the following cities
+// let Moscow = weatherIn({lat: 37.6, lon: 55.75});
+// let Copenhagen = weatherIn({lat: 12.57, lon: 55.67});
+// let RioDeJaneiro = weatherIn({lat: -43.17, lon: -22.9});
+// let Paris = weatherIn({lat: 2.35, lon: 48.86});
+//
+// /*
+// Moscow.then(c => console.log(c));
+// Copenhagen.then(c => console.log(c));
+// RioDeJaneiro.then(c => console.log(c));
+// Paris.then(c => console.log(c));
+//
+// fetchUniversities("University of Massachusetts").then(x => console.log(x));
+// fetchGeoCoord("University of Massachusetts Amherst").then(x => console.log(x));
+// fetchUMassWeather().then(x => console.log(x));
+// fetchUCalWeather().then(x => console.log(x));
+// */
+//
+// //this function compares weather in the given city to the weather in the given university
+// function printDif(city: number, cityN: string, uni: number, uniN: string) {
+//     if (city > uni) {
+//         console.log("Weather in " + uniN + " is lower than in " + cityN + " by " + (city - uni) + " degrees.");
+//     } else if (uni > city) {
+//         console.log("Weather in " + uniN + " is higher than in " + cityN + " by " + (uni - city) + " degrees.");
+//     } else {
+//         console.log("Weather in " + uniN + " is the same as in " + cityN + ".");
+//     }
+// }
+//
+// //printing all the comparisons (using fetchUmassWeather and fetchUCalWeather)
+// fetchUMassWeather().then(r => {
+//     Moscow.then(c => {
+//         printDif(c, "Moscow", r.totalAverage, "University of Massachusetts");
+//     });
+// });
+//
+// fetchUMassWeather().then(r => {
+//     Copenhagen.then(c => {
+//         printDif(c, "Copenhagen", r.totalAverage, "University of Massachusetts");
+//     });
+// });
+//
+// fetchUMassWeather().then(r => {
+//     RioDeJaneiro.then(c => {
+//         printDif(c, "Rio de Janeiro", r.totalAverage, "University of Massachusetts");
+//     });
+// });
+//
+// fetchUMassWeather().then(r => {
+//     Paris.then(c => {
+//         printDif(c, "Paris", r.totalAverage, "University of Massachusetts");
+//     });
+// });
+//
+// fetchUCalWeather().then(r => {
+//     Moscow.then(c => {
+//         printDif(c, "Moscow", r.totalAverage, "University of California");
+//     });
+// });
+//
+// fetchUCalWeather().then(r => {
+//     Copenhagen.then(c => {
+//         printDif(c, "Copenhagen", r.totalAverage, "University of California");
+//     });
+// });
+//
+// fetchUCalWeather().then(r => {
+//     RioDeJaneiro.then(c => {
+//         printDif(c, "Rio de Janeiro", r.totalAverage, "University of California");
+//     });
+// });
+//
+// fetchUCalWeather().then(r => {
+//     Paris.then(c => {
+//         printDif(c, "Paris", r.totalAverage, "University of California");
+//     });
+// });
