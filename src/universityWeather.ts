@@ -33,16 +33,14 @@ export function fetchUniversityWeather(
         )
     ).then(
         (proms: Promise<void>[]): Promise<AverageTemperatureResults> =>
-            Promise.all(proms).then(
-                (_: void[]): AverageTemperatureResults | Promise<AverageTemperatureResults> => {
-                    if (_.length === 0) {
-                        return Promise.reject<AverageTemperatureResults>(new Error("No results found for query."));
-                        // throw new Error("No results found for query.");
+            proms.length === 0 ?
+                Promise.reject<AverageTemperatureResults>(new Error("No results found for query.")) :
+                Promise.all(proms).then(
+                    (_: void[]): AverageTemperatureResults => {
+                        resObj.totalAverage = total / _.length;
+                        return resObj;
                     }
-                    resObj.totalAverage = total / _.length;
-                    return resObj;
-                }
-            )
+                )
     );
 }
 
