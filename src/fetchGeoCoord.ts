@@ -28,5 +28,7 @@ export function fetchGeoCoord(query: string): Promise<GeoCoord> {
                 }
             }
             return Promise.reject<GeoCoord>(new Error("No results found for query."));
+            // throw new Error("No results found for query.");
         });
 }
+
