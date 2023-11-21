@@ -1,10 +1,9 @@
-import {fetchUniversities} from "./fetchUniversities";
-import {fetchGeoCoord} from "./fetchGeoCoord";
-import {fetchCurrentTemperature} from "./fetchCurrentTemperature";
+import { fetchUniversities } from "./fetchUniversities.js";
+import { fetchGeoCoord, GeoCoord } from "./fetchGeoCoord.js";
+import { fetchCurrentTemperature, TemperatureReading } from "./fetchCurrentTemperature.js";
 
 interface AverageTemperatureResults {
     totalAverage: number;
-
     [key: string]: number;
 }
 
@@ -13,53 +12,34 @@ export function fetchUniversityWeather(
     transformName?: (s: string) => string
 ): Promise<AverageTemperatureResults> {
     // TODO
-    let totalAvg = 0;
-    let obj: AverageTemperatureResults;
+
+    const obj: AverageTemperatureResults = { totalAverage: 0 };
+    let total = 0;
     let count = 0;
-    let sum = 0;
 
-    if (typeof universityQuery !== "string") {
-        return Promise.reject(new Error("Query must be a string"));
-    }
-
-    if (universityQuery === "") {
-        return Promise.reject(new Error("Query is empty"));
-    }
-
-    const p = fetchUniversities(universityQuery).then(arr => {
-        if (arr.length === 0) {
-            return Promise.reject(new Error("No results found for query."));
-        }
-        return arr.map(x =>
-            ((transformName !== undefined) ? fetchGeoCoord(transformName(x)) : fetchGeoCoord(x)).then(y =>
-                fetchCurrentTemperature(y).then(z => {
-                    count += 1;
-                    z["temperature_2m"].map(e => (sum += e));
-
-                    obj[x] = sum / z["temperature_2m"].length;
-                    totalAvg += obj[x];
-
-                    sum = 0;
-
-                    if (count === arr.length) {
-                        obj["totalAverage"] = totalAvg / arr.length;
-                    }
-                    return obj;
+    return fetchUniversities(universityQuery).then((x: string[]) => {
+        x.forEach((y: string) =>
+            (transformName !== undefined ? fetchGeoCoord(transformName(y)) : fetchGeoCoord(y)).then((z: GeoCoord) =>
+                fetchCurrentTemperature(z).then((t: TemperatureReading) => {
+                    obj[y] = t.temperature_2m.reduce((s, a) => s + a, 0) / t.temperature_2m.length;
+                    total += obj[y];
+                    ++count;
                 })
             )
         );
+        obj.totalAverage = total / count;
+        return obj;
     });
-
-    const newP = p.then(arr => Promise.all(arr).then(x => x[0]));
-    return newP;
 }
 
 export function fetchUMassWeather(): Promise<AverageTemperatureResults> {
     // TODO
-    return new Promise(res => res({totalAverage: NaN}));
+    return fetchUniversityWeather("University of Massachusetts", x => {
+        return x === "University of Massachussetts at Amherst" ? "University of Massachussetts Amherst" : x;
+    });
 }
 
 export function fetchUCalWeather(): Promise<AverageTemperatureResults> {
     // TODO
-    return new Promise(res => res({totalAverage: NaN}));
+    return fetchUniversityWeather("University of California");
 }
