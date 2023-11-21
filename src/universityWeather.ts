@@ -34,10 +34,10 @@ export function fetchUniversityWeather(
     ).then(
         (proms: Promise<void>[]): Promise<AverageTemperatureResults> =>
             Promise.all(proms).then(
-                (_: void[]): AverageTemperatureResults => {
+                (_: void[]): AverageTemperatureResults | Promise<AverageTemperatureResults> => {
                     if (_.length === 0) {
-                        // return Promise.reject(new Error("No universities found."));
-                        throw new Error("No universities found.");
+                        return Promise.reject<AverageTemperatureResults>(new Error("No results found for query."));
+                        // throw new Error("No results found for query.");
                     }
                     resObj.totalAverage = total / _.length;
                     return resObj;
@@ -48,7 +48,7 @@ export function fetchUniversityWeather(
 
 export function fetchUMassWeather(): Promise<AverageTemperatureResults> {
     // TODO
-    return fetchUniversityWeather("University of Massachusetts", x => {
+    return fetchUniversityWeather("University of Massachusetts", (x: string): string => {
         if (x === "University of Massachusetts at Amherst") return "University of Massachusetts Amherst";
         if (x === "University of Massachusetts at Lowell") return "University of Massachusetts Lowell";
         if (x === "University of Massachusetts at Dartmouth") return "University of Massachusetts Dartmouth";
